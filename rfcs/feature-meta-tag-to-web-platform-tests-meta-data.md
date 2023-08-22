@@ -72,6 +72,10 @@ One alternative considered was to add specific web platform tests to each featur
 
 # Implementation Details
 
+1. Introduce a new metadata file, FEATURE_SET.yml
+2. Adjust the wpt-pr-bot to handle reviews of the changes
+3. Create a script to generate a manifest
+
 There are two steps that need to happen:  
 1. Annotate the META.yml files with the "feature" key that corresponds to the feature-set entry. This can be done gradually and not all at once.
 2. Create a wpt script that generates a Feature manifest. Similar to the [SPEC_MANIFEST.json](https://github.com/web-platform-tests/wpt/pull/40655). For more details, check the diagram attached to the pull request for this RFC.
@@ -96,11 +100,112 @@ The following steps will allow the community to roll back this RFC in the event 
   - ```sh
     # Remove all the lines that start with feature
     find . -name META.yml -type f -print0 | xargs -0 sed -i '/^feature/d'
-    # If the "feature" key was the only key in the file, remove the whole file.
-    find . -name META.yml -type f -empty -delete
+    # Remove all the new metadata files
+    find . -name META.yml -type f -delete
     ```
 2. Remove all lines in the test files
   - ```sh
     # In case there are any spacing or ordering differences.
     find . -type f -print0 | xargs -0 sed -i '/^.*<meta.*name.*=.*"feature"/d'
     ```
+
+---
+
+## WPT-PR-Bot changes
+
+### Current State
+
+Currently, the wpt-pr-bot builds a list of PR reviewers by:
+1. Retrieving the paths for all of the files
+2. Finding the nearest META.yml file for each path
+3. Add the list of suggested_reviewers from a given META.yml to a set of reviewers
+
+With the new file, reviewers in the META.yml could be assigned to review the
+file when they may not be the best choice for reviewers.
+
+### Different scenario and needed changes
+
+### Scenario 1: Addition/Modification/Removal of FEATURE_SET.yml
+
+### Scenario 2:
+
+### Scenario 3: Removal of FEATURE_SET.yml
+
+In order to prevent unnecessary reviews, wpt-pr-bot
+
+# FEATURE_SET.yml: The new metadata file
+
+Originally, this RFC proposed adding these details to the existing META.yml.
+During the Monthly WPT Meeting, it was discussed that it should be a separate
+file.
+
+## File example
+
+```
+version: v1
+feature_set: subgrid
+recurisve: true
+overrides:
+- file_name: name.txt
+  feature_set: feature2
+```
+
+## Schema
+
+```json
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Main",
+    "definitions": {
+        "Main": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "parser_version": {
+                    "type": "string",
+                    "description": "version of the parser"
+                },
+                "feature_set": {
+                    "type": "string",
+                    "description": "The feature set key"
+                },
+                "recurisve": {
+                    "type": "boolean",
+                    "description": "Flag to indicate whether this applies recursively to the sub-directories",
+                    "default": false
+                },
+                "overrides": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Override"
+                    }
+                }
+            },
+            "required": [
+                "feature_set",
+                "version"
+            ],
+            "title": "Main"
+        },
+        "Override": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "file_name": {
+                    "type": "string",
+                    "description": " The file name of the test in the same directory as this file."
+                },
+                "feature_set": {
+                    "type": "string",
+                    "description": "The feature set key"
+                }
+            },
+            "required": [
+                "feature_set",
+                "file_name"
+            ],
+            "title": "Override"
+        }
+    }
+}
+```
