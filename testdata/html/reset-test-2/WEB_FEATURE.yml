@@ -1,0 +1,8 @@
+apply_mode: IGNORE_PARENT
+features:
+- name: reset-test-2
+  files:
+  - reset-test-2-01.html
+- name: reset-test-1
+  files:
+  - reset-test-2-01.html

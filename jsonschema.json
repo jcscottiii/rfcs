@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Main",
+    "definitions": {
+        "Main": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "description": "List of features",
+                    "items": {
+                        "$ref": "#/definitions/FeatureEntry"
+                    }
+                },
+                "apply_mode": {
+                    "type": "string",
+                    "anyOf": [
+                    	{
+                            "const": "IGNORE_PARENT",
+                            "description": "Ignores features from previous parent directories."
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "features"
+            ],
+            "title": "Main"
+        },
+        "FeatureEntry": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The web feature key"
+                },
+                "files": {
+                    "oneOf": [
+                        {
+                            "const": "**",
+                            "description": "All files recursively",
+                            "title": "Files"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "description": "A specific file within the current directory"
+                            }
+                        }
+
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "files"
+            ],
+            "title": "FeatureEntry"
+        }
+    }
+}
