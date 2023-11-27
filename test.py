@@ -153,19 +153,18 @@ def find_all_other_files_in_dir(dir: str) -> List[str]:
     return [os.path.join(dir,f) for f in os.listdir(dir)
         if WEB_FEATURE_FILENAME not in f and os.path.isfile(os.path.join(dir,f))]
 
-VISITED_ROOTS = set()
+VISITED_DIRS = set()
 def build_feature_to_test_map(dir_path: str, prev_inherited_features: List[FeatureEntry]=[]):
     for root, dirs, _ in os.walk(dir_path):
-        if root in VISITED_ROOTS:
+        if root in VISITED_DIRS:
             continue
-        VISITED_ROOTS.add(root)
+        VISITED_DIRS.add(root)
         inherited_features = prev_inherited_features.copy()
         # Check if the current directory has a WEB_FEATURE_FILENAME
         current_files = find_all_other_files_in_dir(root)
 
         web_feature_file = parse_web_feature_yml(os.path.join(root, WEB_FEATURE_FILENAME))
         if web_feature_file:
-            # print(os.path.join(root, WEB_FEATURE_FILENAME))
             if web_feature_file.apply_mode == ApplyMode.IGNORE_PARENT:
                 inherited_features.clear()
             else:
@@ -199,4 +198,5 @@ def build_feature_to_test_map(dir_path: str, prev_inherited_features: List[Featu
 if __name__ == "__main__":
     wpt_root = "testdata"
     build_feature_to_test_map(wpt_root)
-    print(repr(FEATURE_RESULT))
+    for feature in FEATURE_RESULT._feature_tests_map_:
+        print(f"Feature {feature} - Tests: {FEATURE_RESULT._feature_tests_map_[feature]}")
